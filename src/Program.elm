@@ -1,4 +1,4 @@
-module Program exposing (Inst(..), Program, ProgramError, parseProgram)
+module Program exposing (Inst(..), Program, Proc, ProgramError, parseProgram)
 
 import Dict exposing (Dict)
 import Parser as P exposing ((|.), (|=), DeadEnd, Parser, Step, Trailing(..), float, int, lazy, loop, map, oneOf, sequence, spaces, succeed, token, variable)

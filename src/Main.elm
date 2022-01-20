@@ -1,12 +1,13 @@
 module Main exposing (main)
 
 import Browser
-import Html exposing (Html, button, div, input, a)
+import Html exposing (Html, button, div, input)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
-import Svg exposing (Svg, svg)
+import Svg exposing (Svg, svg, line)
 import Svg.Attributes exposing (..)
-import Program exposing (Inst(..), Program, ProgramError, parseProgram)
+import Dict
+import Program exposing (Inst(..), Program, Proc, ProgramError, parseProgram)
 
 -- MAIN
 main =
@@ -51,7 +52,54 @@ update msg model =
                 , errors = errors
               }
           )
-      --draw model.content { x = 250, y = 250, angle = 0 }
+correctAngle : Float -> Float
+correctAngle angle =
+  if angle >= 360 then
+    angle - 360
+  else if angle < 0 then
+    angle + 360
+  
+  else
+    angle
+draw : Program -> Proc -> Cursor -> List (Svg msg)
+draw prog proc cursor =
+  case proc of
+    [] ->
+        []
+
+    inst :: subProc ->
+      case inst of
+        Forward length ->
+          let
+              newCursor =
+                  { cursor
+                      | x = cursor.x + length * cos (degrees cursor.angle)
+                      , y = cursor.y + length * sin (degrees cursor.angle)
+                  }
+          in
+          [ line
+              [ x1 (String.fromFloat cursor.x)
+              , y1 (String.fromFloat cursor.y)
+              , x2 (String.fromFloat newCursor.x)
+              , y2 (String.fromFloat newCursor.y)
+              , Svg.Attributes.style "stroke:rgb(255,0,0);stroke-width:2"
+              ]
+              []
+          ]
+              ++ draw prog subProc newCursor
+
+        Left n ->
+            draw prog subProc { cursor | angle = correctAngle (cursor.angle - n) }
+
+        Right n ->
+            draw prog subProc { cursor | angle = correctAngle (cursor.angle + n) }
+
+        Repeat n toRepeat ->
+            if n <= 1 then
+                draw prog (toRepeat ++ subProc) cursor
+
+            else
+                draw prog (toRepeat ++ [ Repeat (n - 1) toRepeat ] ++ subProc) cursor
 
 -- VIEW
 
