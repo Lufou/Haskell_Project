@@ -6612,8 +6612,9 @@ var $elm$html$Html$Attributes$stringProperty = F2(
 	});
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$html$Html$div = _VirtualDom_node('div');
-var $elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
 var $elm$html$Html$input = _VirtualDom_node('input');
+var $elm$virtual_dom$VirtualDom$lazy = _VirtualDom_lazy;
+var $elm$html$Html$Lazy$lazy = $elm$virtual_dom$VirtualDom$lazy;
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
 };
@@ -6665,13 +6666,172 @@ var $elm$html$Html$Events$onInput = function (tagger) {
 			A2($elm$json$Json$Decode$map, tagger, $elm$html$Html$Events$targetValue)));
 };
 var $elm$html$Html$Attributes$placeholder = $elm$html$Html$Attributes$stringProperty('placeholder');
+var $elm$core$Basics$ge = _Utils_ge;
+var $author$project$Main$correctAngle = function (angle) {
+	return (angle >= 360) ? (angle - 360) : ((angle < 0) ? (angle + 360) : angle);
+};
+var $elm$core$Basics$cos = _Basics_cos;
+var $elm$core$Basics$pi = _Basics_pi;
+var $elm$core$Basics$degrees = function (angleInDegrees) {
+	return (angleInDegrees * $elm$core$Basics$pi) / 180;
+};
+var $elm$core$String$fromFloat = _String_fromNumber;
 var $elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
+var $elm$svg$Svg$line = $elm$svg$Svg$trustedNode('line');
+var $elm$core$Basics$sin = _Basics_sin;
+var $elm$svg$Svg$Attributes$style = _VirtualDom_attribute('style');
+var $elm$core$Maybe$withDefault = F2(
+	function (_default, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return value;
+		} else {
+			return _default;
+		}
+	});
+var $elm$svg$Svg$Attributes$x1 = _VirtualDom_attribute('x1');
+var $elm$svg$Svg$Attributes$x2 = _VirtualDom_attribute('x2');
+var $elm$svg$Svg$Attributes$y1 = _VirtualDom_attribute('y1');
+var $elm$svg$Svg$Attributes$y2 = _VirtualDom_attribute('y2');
+var $author$project$Main$draw = F3(
+	function (prog, proc, cursor) {
+		draw:
+		while (true) {
+			if (!proc.b) {
+				return _List_Nil;
+			} else {
+				var inst = proc.a;
+				var subProc = proc.b;
+				switch (inst.$) {
+					case 'Forward':
+						var length = inst.a;
+						var newCursor = _Utils_update(
+							cursor,
+							{
+								x: cursor.x + (length * $elm$core$Basics$cos(
+									$elm$core$Basics$degrees(cursor.angle))),
+								y: cursor.y + (length * $elm$core$Basics$sin(
+									$elm$core$Basics$degrees(cursor.angle)))
+							});
+						return A2(
+							$elm$core$List$cons,
+							A2(
+								$elm$svg$Svg$line,
+								_List_fromArray(
+									[
+										$elm$svg$Svg$Attributes$x1(
+										$elm$core$String$fromFloat(cursor.x)),
+										$elm$svg$Svg$Attributes$y1(
+										$elm$core$String$fromFloat(cursor.y)),
+										$elm$svg$Svg$Attributes$x2(
+										$elm$core$String$fromFloat(newCursor.x)),
+										$elm$svg$Svg$Attributes$y2(
+										$elm$core$String$fromFloat(newCursor.y)),
+										$elm$svg$Svg$Attributes$style('stroke:rgb(255,0,0);stroke-width:2')
+									]),
+								_List_Nil),
+							A3($author$project$Main$draw, prog, subProc, newCursor));
+					case 'Left':
+						var n = inst.a;
+						var $temp$prog = prog,
+							$temp$proc = subProc,
+							$temp$cursor = _Utils_update(
+							cursor,
+							{
+								angle: $author$project$Main$correctAngle(cursor.angle - n)
+							});
+						prog = $temp$prog;
+						proc = $temp$proc;
+						cursor = $temp$cursor;
+						continue draw;
+					case 'Right':
+						var n = inst.a;
+						var $temp$prog = prog,
+							$temp$proc = subProc,
+							$temp$cursor = _Utils_update(
+							cursor,
+							{
+								angle: $author$project$Main$correctAngle(cursor.angle + n)
+							});
+						prog = $temp$prog;
+						proc = $temp$proc;
+						cursor = $temp$cursor;
+						continue draw;
+					case 'Repeat':
+						var n = inst.a;
+						var toRepeat = inst.b;
+						if (n <= 1) {
+							var $temp$prog = prog,
+								$temp$proc = _Utils_ap(toRepeat, subProc),
+								$temp$cursor = cursor;
+							prog = $temp$prog;
+							proc = $temp$proc;
+							cursor = $temp$cursor;
+							continue draw;
+						} else {
+							var $temp$prog = prog,
+								$temp$proc = _Utils_ap(
+								toRepeat,
+								A2(
+									$elm$core$List$cons,
+									A2($author$project$Program$Repeat, n - 1, toRepeat),
+									subProc)),
+								$temp$cursor = cursor;
+							prog = $temp$prog;
+							proc = $temp$proc;
+							cursor = $temp$cursor;
+							continue draw;
+						}
+					default:
+						var procName = inst.a;
+						var $temp$prog = prog,
+							$temp$proc = _Utils_ap(
+							A2(
+								$elm$core$Maybe$withDefault,
+								_List_Nil,
+								A2($elm$core$Dict$get, procName, prog)),
+							subProc),
+							$temp$cursor = cursor;
+						prog = $temp$prog;
+						proc = $temp$proc;
+						cursor = $temp$cursor;
+						continue draw;
+				}
+			}
+		}
+	});
+var $elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
 var $elm$svg$Svg$svg = $elm$svg$Svg$trustedNode('svg');
+var $elm$svg$Svg$Attributes$viewBox = _VirtualDom_attribute('viewBox');
+var $elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
+var $author$project$Main$test = function (mprog) {
+	return A2(
+		$elm$svg$Svg$svg,
+		_List_fromArray(
+			[
+				$elm$svg$Svg$Attributes$width('500'),
+				$elm$svg$Svg$Attributes$height('500'),
+				$elm$svg$Svg$Attributes$viewBox('0 0 500 500')
+			]),
+		function () {
+			if (mprog.$ === 'Just') {
+				var prog = mprog.a;
+				return A3(
+					$author$project$Main$draw,
+					prog,
+					A2(
+						$elm$core$Maybe$withDefault,
+						_List_Nil,
+						A2($elm$core$Dict$get, 'main', prog)),
+					{angle: 0, x: 250, y: 250});
+			} else {
+				return _List_Nil;
+			}
+		}());
+};
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
-var $elm$svg$Svg$Attributes$viewBox = _VirtualDom_attribute('viewBox');
-var $elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
 var $author$project$Main$view = function (model) {
 	return $elm$core$List$isEmpty(model.errors) ? A2(
 		$elm$html$Html$div,
@@ -6701,14 +6861,15 @@ var $author$project$Main$view = function (model) {
 						$elm$html$Html$text('Draw')
 					])),
 				A2(
-				$elm$svg$Svg$svg,
+				$elm$html$Html$div,
 				_List_fromArray(
 					[
-						$elm$svg$Svg$Attributes$width('500'),
-						$elm$svg$Svg$Attributes$height('500'),
-						$elm$svg$Svg$Attributes$viewBox('0 0 500 500')
+						$elm$html$Html$Attributes$class('page')
 					]),
-				_List_Nil)
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Lazy$lazy, $author$project$Main$test, model.prog)
+					]))
 			])) : A2(
 		$elm$html$Html$div,
 		_List_fromArray(

@@ -4,10 +4,11 @@ import Browser
 import Html exposing (Html, button, div, input)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
+import Html.Lazy exposing (lazy)
 import Svg exposing (Svg, svg, line)
 import Svg.Attributes exposing (..)
 import Dict
-import Program exposing (Inst(..), Program, Proc, ProgramError, parseProgram)
+import Program exposing (Inst(..), Program, Proc, ProgramError)
 
 -- MAIN
 main =
@@ -77,16 +78,16 @@ draw prog proc cursor =
                       , y = cursor.y + length * sin (degrees cursor.angle)
                   }
           in
-          [ line
-              [ x1 (String.fromFloat cursor.x)
-              , y1 (String.fromFloat cursor.y)
-              , x2 (String.fromFloat newCursor.x)
-              , y2 (String.fromFloat newCursor.y)
-              , Svg.Attributes.style "stroke:rgb(255,0,0);stroke-width:2"
-              ]
-              []
-          ]
-              ++ draw prog subProc newCursor
+          line
+            [ x1 (String.fromFloat cursor.x)
+            , y1 (String.fromFloat cursor.y)
+            , x2 (String.fromFloat newCursor.x)
+            , y2 (String.fromFloat newCursor.y)
+            , Svg.Attributes.style "stroke:rgb(255,0,0);stroke-width:2"
+            ]
+            []
+
+            :: draw prog subProc newCursor
 
         Left n ->
             draw prog subProc { cursor | angle = correctAngle (cursor.angle - n) }
@@ -99,7 +100,11 @@ draw prog proc cursor =
                 draw prog (toRepeat ++ subProc) cursor
 
             else
-                draw prog (toRepeat ++ [ Repeat (n - 1) toRepeat ] ++ subProc) cursor
+                draw prog (toRepeat ++  Repeat (n - 1) toRepeat  :: subProc) cursor
+        
+        Call procName ->
+                    draw prog (Maybe.withDefault [] (Dict.get procName prog) ++ subProc) cursor
+
 
 -- VIEW
 
@@ -109,12 +114,7 @@ view model =
     div [ Html.Attributes.class "page" ]
       [ input [ placeholder "example: [Repeat 360 [Forward 1, Left 1]]", value model.content, onInput Change ] []
       , button [ onClick Draw ] [ Html.text "Draw"]
-      , svg
-        [ Svg.Attributes.width "500"
-        , Svg.Attributes.height "500"
-        , viewBox "0 0 500 500"
-        ]
-        []
+      , div [ Html.Attributes.class "page" ] [lazy drawingSpace model.prog]
       ]
   else
       div [ Html.Attributes.class "page" ]
@@ -123,3 +123,17 @@ view model =
       , div [ Html.Attributes.class "error" ]
           [ Html.text "Wrong syntax!" ]
       ]
+
+drawingSpace : Maybe Program -> Html Msg
+drawingSpace mprog =
+   svg
+      [ Svg.Attributes.width "500"
+      , Svg.Attributes.height "500"
+      , viewBox "0 0 500 500"
+      ]
+      (case mprog of
+          Just prog ->
+              draw prog (Maybe.withDefault [] (Dict.get "main" prog)) { x = 250, y = 250, angle = 0 }
+          Nothing ->
+              []
+      )

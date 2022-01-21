@@ -28,28 +28,28 @@ type alias Proc =
 type alias Program =
     Dict String Proc
 
-
+pForward : Parser Inst
 pForward =
     succeed Forward
         |. token "Forward"
         |. spaces
         |= float
 
-
+pLeft : Parser Inst
 pLeft =
     succeed Left
         |. token "Left"
         |. spaces
         |= float
 
-
+pRight : Parser Inst
 pRight =
     succeed Right
         |. token "Right"
         |. spaces
         |= float
 
-
+pRepeat : Parser Inst
 pRepeat =
     succeed Repeat
         |. token "Repeat"
@@ -58,7 +58,7 @@ pRepeat =
         |. spaces
         |= lazy (\_ -> pProc)
 
-
+pIdentifier : Parser String
 pIdentifier =
     variable
         { start = Char.isLower
@@ -66,7 +66,7 @@ pIdentifier =
         , reserved = Set.empty
         }
 
-
+pCall : Parser Inst
 pCall =
     succeed Call
         |. token "Call"
