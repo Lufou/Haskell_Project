@@ -1,119 +1,94 @@
-module Program exposing (Inst(..), Program, Proc, ProgramError, parseProgram)
+module Program exposing (Inst(..), Proc, Program, ProgramError, parseProgram)
 
 import Dict exposing (Dict)
-import Parser as P exposing ((|.), (|=), DeadEnd, Parser, Step, Trailing(..), float, int, lazy, loop, map, oneOf, sequence, spaces, succeed, token, variable)
+import Parser as P exposing ((|.), (|=), DeadEnd, Parser, Trailing(..), float, int, lazy, loop, map, oneOf, sequence, spaces, succeed, token, variable)
 import Set
 
 
-{-| Instructions
--}
 type Inst
     = Forward Float
     | Left Float
     | Right Float
-      -- Repeat a list of instructions
     | Repeat Int Proc
-      -- Call a procedure by its name
     | Call String
 
-
-{-| Procedure aka list of instructions
--}
 type alias Proc =
     List Inst
 
-
-{-| A Program is a set of named procedures
--}
 type alias Program =
     Dict String Proc
 
-pForward : Parser Inst
-pForward =
+parseForward : Parser Inst
+parseForward =
     succeed Forward
         |. token "Forward"
         |. spaces
         |= float
 
-pLeft : Parser Inst
-pLeft =
+parseLeft : Parser Inst
+parseLeft =
     succeed Left
         |. token "Left"
         |. spaces
         |= float
 
-pRight : Parser Inst
-pRight =
+parseRight : Parser Inst
+parseRight =
     succeed Right
         |. token "Right"
         |. spaces
         |= float
 
-pRepeat : Parser Inst
-pRepeat =
+parseRepeat : Parser Inst
+parseRepeat =
     succeed Repeat
         |. token "Repeat"
         |. spaces
         |= int
         |. spaces
-        |= lazy (\_ -> pProc)
+        |= lazy (\_ -> parseProc)
 
-pIdentifier : Parser String
-pIdentifier =
+parseIdentifier : Parser String
+parseIdentifier =
     variable
         { start = Char.isLower
         , inner = \c -> Char.isAlphaNum c || c == '_'
         , reserved = Set.empty
         }
 
-pCall : Parser Inst
-pCall =
+parseCall : Parser Inst
+parseCall =
     succeed Call
         |. token "Call"
         |. spaces
-        |= pIdentifier
+        |= parseIdentifier
 
+parseInst : Parser Inst
+parseInst =
+    oneOf [ parseForward, parseLeft, parseRight, parseRepeat, parseCall ]
 
-pInst : Parser Inst
-pInst =
-    oneOf [ pForward, pLeft, pRight, pRepeat, pCall ]
+parseProc : Parser Proc
+parseProc =
+    sequence { start = "[", separator = ",", end = "]", spaces = spaces, item = parseInst, trailing = Optional }
 
-
-{-| Parser for a procedure, should be able to parse this :
-    [ Forward 5, Right 3, Repeat 4 [ Forward 5, Call circle ] ]
--}
-pProc : Parser Proc
-pProc =
-    sequence { start = "[", separator = ",", end = "]", spaces = spaces, item = pInst, trailing = Optional }
-
-
-{-| Parser for a whole program, should be able to parse this :
-    circle [ Repeat 12 [ Right 30, Forward 10 ] ]
-    [ Repeat 6 [ Forward 10, Call circle ] ]
--}
-pProgram : Parser Program
-pProgram =
+parseProg : Parser Program
+parseProg =
     succeed identity
         |. spaces
         |= loop Dict.empty
             (\procs ->
                 oneOf
                     [ succeed (\identifier proc -> P.Loop (Dict.insert identifier proc procs))
-                        |= pIdentifier
+                        |= parseIdentifier
                         |. spaces
-                        |= pProc
+                        |= parseProc
                         |. spaces
                     , succeed (\proc -> P.Loop (Dict.insert "main" proc procs))
-                        |= pProc
+                        |= parseProc
                     , succeed ()
                         |> map (\_ -> P.Done procs)
                     ]
             )
-
-
-
--- TODO(guillaume) use advanced parser (Parser.Advanced) to check for errors while parsing
-
 
 type ProgramError
     = SyntaxError DeadEnd
@@ -121,19 +96,14 @@ type ProgramError
     | Loop String
     | NoMain
 
-
-{-| Check the program for errors other than syntax errors
--}
 checkProgram : Program -> List ProgramError
 checkProgram prog =
-    -- Check for main procedure existence
     (if Dict.member "main" prog then
         []
 
      else
         [ NoMain ]
     )
-        -- Check for errors with instructions
         ++ Dict.foldl
             (\name proc errors ->
                 errors
@@ -142,9 +112,7 @@ checkProgram prog =
                             procErrors
                                 ++ (case inst of
                                         Call callee ->
-                                            -- Check the call refer to an existing procedure
                                             if Dict.member callee prog then
-                                                -- Check for a simple loop
                                                 if callee == name then
                                                     [ Loop callee ]
 
@@ -167,7 +135,7 @@ checkProgram prog =
 
 parseProgram : String -> ( Maybe Program, List ProgramError )
 parseProgram text =
-    case P.run pProgram text of
+    case P.run parseProg text of
         Err err ->
             ( Nothing, List.map (\e -> SyntaxError e) err )
 

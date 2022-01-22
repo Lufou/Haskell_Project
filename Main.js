@@ -5820,7 +5820,7 @@ var $elm$parser$Parser$variable = function (i) {
 	return $elm$parser$Parser$Advanced$variable(
 		{expecting: $elm$parser$Parser$ExpectingVariable, inner: i.inner, reserved: i.reserved, start: i.start});
 };
-var $author$project$Program$pIdentifier = $elm$parser$Parser$variable(
+var $author$project$Program$parseIdentifier = $elm$parser$Parser$variable(
 	{
 		inner: function (c) {
 			return $elm$core$Char$isAlphaNum(c) || _Utils_eq(
@@ -6112,7 +6112,7 @@ var $elm$parser$Parser$token = function (str) {
 	return $elm$parser$Parser$Advanced$token(
 		$elm$parser$Parser$toToken(str));
 };
-var $author$project$Program$pCall = A2(
+var $author$project$Program$parseCall = A2(
 	$elm$parser$Parser$keeper,
 	A2(
 		$elm$parser$Parser$ignorer,
@@ -6121,7 +6121,7 @@ var $author$project$Program$pCall = A2(
 			$elm$parser$Parser$succeed($author$project$Program$Call),
 			$elm$parser$Parser$token('Call')),
 		$elm$parser$Parser$spaces),
-	$author$project$Program$pIdentifier);
+	$author$project$Program$parseIdentifier);
 var $author$project$Program$Forward = function (a) {
 	return {$: 'Forward', a: a};
 };
@@ -6140,7 +6140,7 @@ var $elm$parser$Parser$Advanced$float = F2(
 			});
 	});
 var $elm$parser$Parser$float = A2($elm$parser$Parser$Advanced$float, $elm$parser$Parser$ExpectingFloat, $elm$parser$Parser$ExpectingFloat);
-var $author$project$Program$pForward = A2(
+var $author$project$Program$parseForward = A2(
 	$elm$parser$Parser$keeper,
 	A2(
 		$elm$parser$Parser$ignorer,
@@ -6153,7 +6153,7 @@ var $author$project$Program$pForward = A2(
 var $author$project$Program$Left = function (a) {
 	return {$: 'Left', a: a};
 };
-var $author$project$Program$pLeft = A2(
+var $author$project$Program$parseLeft = A2(
 	$elm$parser$Parser$keeper,
 	A2(
 		$elm$parser$Parser$ignorer,
@@ -6166,7 +6166,7 @@ var $author$project$Program$pLeft = A2(
 var $author$project$Program$Right = function (a) {
 	return {$: 'Right', a: a};
 };
-var $author$project$Program$pRight = A2(
+var $author$project$Program$parseRight = A2(
 	$elm$parser$Parser$keeper,
 	A2(
 		$elm$parser$Parser$ignorer,
@@ -6403,29 +6403,29 @@ var $elm$parser$Parser$sequence = function (i) {
 			trailing: $elm$parser$Parser$toAdvancedTrailing(i.trailing)
 		});
 };
-function $author$project$Program$cyclic$pProc() {
+function $author$project$Program$cyclic$parseProc() {
 	return $elm$parser$Parser$sequence(
 		{
 			end: ']',
-			item: $author$project$Program$cyclic$pInst(),
+			item: $author$project$Program$cyclic$parseInst(),
 			separator: ',',
 			spaces: $elm$parser$Parser$spaces,
 			start: '[',
 			trailing: $elm$parser$Parser$Optional
 		});
 }
-function $author$project$Program$cyclic$pInst() {
+function $author$project$Program$cyclic$parseInst() {
 	return $elm$parser$Parser$oneOf(
 		_List_fromArray(
 			[
-				$author$project$Program$pForward,
-				$author$project$Program$pLeft,
-				$author$project$Program$pRight,
-				$author$project$Program$cyclic$pRepeat(),
-				$author$project$Program$pCall
+				$author$project$Program$parseForward,
+				$author$project$Program$parseLeft,
+				$author$project$Program$parseRight,
+				$author$project$Program$cyclic$parseRepeat(),
+				$author$project$Program$parseCall
 			]));
 }
-function $author$project$Program$cyclic$pRepeat() {
+function $author$project$Program$cyclic$parseRepeat() {
 	return A2(
 		$elm$parser$Parser$keeper,
 		A2(
@@ -6440,25 +6440,25 @@ function $author$project$Program$cyclic$pRepeat() {
 			A2($elm$parser$Parser$ignorer, $elm$parser$Parser$int, $elm$parser$Parser$spaces)),
 		$elm$parser$Parser$lazy(
 			function (_v0) {
-				return $author$project$Program$cyclic$pProc();
+				return $author$project$Program$cyclic$parseProc();
 			}));
 }
 try {
-	var $author$project$Program$pProc = $author$project$Program$cyclic$pProc();
-	$author$project$Program$cyclic$pProc = function () {
-		return $author$project$Program$pProc;
+	var $author$project$Program$parseProc = $author$project$Program$cyclic$parseProc();
+	$author$project$Program$cyclic$parseProc = function () {
+		return $author$project$Program$parseProc;
 	};
-	var $author$project$Program$pInst = $author$project$Program$cyclic$pInst();
-	$author$project$Program$cyclic$pInst = function () {
-		return $author$project$Program$pInst;
+	var $author$project$Program$parseInst = $author$project$Program$cyclic$parseInst();
+	$author$project$Program$cyclic$parseInst = function () {
+		return $author$project$Program$parseInst;
 	};
-	var $author$project$Program$pRepeat = $author$project$Program$cyclic$pRepeat();
-	$author$project$Program$cyclic$pRepeat = function () {
-		return $author$project$Program$pRepeat;
+	var $author$project$Program$parseRepeat = $author$project$Program$cyclic$parseRepeat();
+	$author$project$Program$cyclic$parseRepeat = function () {
+		return $author$project$Program$parseRepeat;
 	};
 } catch ($) {
-	throw 'Some top-level definitions from `Program` are causing infinite recursion:\n\n  ┌─────┐\n  │    pProc\n  │     ↓\n  │    pInst\n  │     ↓\n  │    pRepeat\n  └─────┘\n\nThese errors are very tricky, so read https://elm-lang.org/0.19.1/bad-recursion to learn how to fix it!';}
-var $author$project$Program$pProgram = A2(
+	throw 'Some top-level definitions from `Program` are causing infinite recursion:\n\n  ┌─────┐\n  │    parseProc\n  │     ↓\n  │    parseInst\n  │     ↓\n  │    parseRepeat\n  └─────┘\n\nThese errors are very tricky, so read https://elm-lang.org/0.19.1/bad-recursion to learn how to fix it!';}
+var $author$project$Program$parseProg = A2(
 	$elm$parser$Parser$keeper,
 	A2(
 		$elm$parser$Parser$ignorer,
@@ -6481,8 +6481,8 @@ var $author$project$Program$pProgram = A2(
 										return $elm$parser$Parser$Loop(
 											A3($elm$core$Dict$insert, identifier, proc, procs));
 									})),
-							A2($elm$parser$Parser$ignorer, $author$project$Program$pIdentifier, $elm$parser$Parser$spaces)),
-						A2($elm$parser$Parser$ignorer, $author$project$Program$pProc, $elm$parser$Parser$spaces)),
+							A2($elm$parser$Parser$ignorer, $author$project$Program$parseIdentifier, $elm$parser$Parser$spaces)),
+						A2($elm$parser$Parser$ignorer, $author$project$Program$parseProc, $elm$parser$Parser$spaces)),
 						A2(
 						$elm$parser$Parser$keeper,
 						$elm$parser$Parser$succeed(
@@ -6490,7 +6490,7 @@ var $author$project$Program$pProgram = A2(
 								return $elm$parser$Parser$Loop(
 									A3($elm$core$Dict$insert, 'main', proc, procs));
 							}),
-						$author$project$Program$pProc),
+						$author$project$Program$parseProc),
 						A2(
 						$elm$parser$Parser$map,
 						function (_v0) {
@@ -6559,7 +6559,7 @@ var $elm$parser$Parser$run = F2(
 		}
 	});
 var $author$project$Program$parseProgram = function (text) {
-	var _v0 = A2($elm$parser$Parser$run, $author$project$Program$pProgram, text);
+	var _v0 = A2($elm$parser$Parser$run, $author$project$Program$parseProg, text);
 	if (_v0.$ === 'Err') {
 		var err = _v0.a;
 		return _Utils_Tuple2(
@@ -6612,63 +6612,9 @@ var $elm$html$Html$Attributes$stringProperty = F2(
 	});
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$html$Html$div = _VirtualDom_node('div');
-var $elm$html$Html$input = _VirtualDom_node('input');
-var $elm$virtual_dom$VirtualDom$lazy = _VirtualDom_lazy;
-var $elm$html$Html$Lazy$lazy = $elm$virtual_dom$VirtualDom$lazy;
-var $elm$virtual_dom$VirtualDom$Normal = function (a) {
-	return {$: 'Normal', a: a};
-};
-var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
-var $elm$html$Html$Events$on = F2(
-	function (event, decoder) {
-		return A2(
-			$elm$virtual_dom$VirtualDom$on,
-			event,
-			$elm$virtual_dom$VirtualDom$Normal(decoder));
-	});
-var $elm$html$Html$Events$onClick = function (msg) {
-	return A2(
-		$elm$html$Html$Events$on,
-		'click',
-		$elm$json$Json$Decode$succeed(msg));
-};
-var $elm$html$Html$Events$alwaysStop = function (x) {
-	return _Utils_Tuple2(x, true);
-};
-var $elm$virtual_dom$VirtualDom$MayStopPropagation = function (a) {
-	return {$: 'MayStopPropagation', a: a};
-};
-var $elm$html$Html$Events$stopPropagationOn = F2(
-	function (event, decoder) {
-		return A2(
-			$elm$virtual_dom$VirtualDom$on,
-			event,
-			$elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
-	});
-var $elm$json$Json$Decode$field = _Json_decodeField;
-var $elm$json$Json$Decode$at = F2(
-	function (fields, decoder) {
-		return A3($elm$core$List$foldr, $elm$json$Json$Decode$field, decoder, fields);
-	});
-var $elm$json$Json$Decode$string = _Json_decodeString;
-var $elm$html$Html$Events$targetValue = A2(
-	$elm$json$Json$Decode$at,
-	_List_fromArray(
-		['target', 'value']),
-	$elm$json$Json$Decode$string);
-var $elm$html$Html$Events$onInput = function (tagger) {
-	return A2(
-		$elm$html$Html$Events$stopPropagationOn,
-		'input',
-		A2(
-			$elm$json$Json$Decode$map,
-			$elm$html$Html$Events$alwaysStop,
-			A2($elm$json$Json$Decode$map, tagger, $elm$html$Html$Events$targetValue)));
-};
-var $elm$html$Html$Attributes$placeholder = $elm$html$Html$Attributes$stringProperty('placeholder');
 var $elm$core$Basics$ge = _Utils_ge;
-var $author$project$Main$correctAngle = function (angle) {
-	return (angle >= 360) ? (angle - 360) : ((angle < 0) ? (angle + 360) : angle);
+var $author$project$Main$changeAngle = function (a) {
+	return (a < 0) ? (a + 360.0) : ((a >= 360) ? (a - 360.0) : a);
 };
 var $elm$core$Basics$cos = _Basics_cos;
 var $elm$core$Basics$pi = _Basics_pi;
@@ -6727,7 +6673,7 @@ var $author$project$Main$draw = F3(
 										$elm$core$String$fromFloat(newCursor.x)),
 										$elm$svg$Svg$Attributes$y2(
 										$elm$core$String$fromFloat(newCursor.y)),
-										$elm$svg$Svg$Attributes$style('stroke:rgb(255,0,0);stroke-width:2')
+										$elm$svg$Svg$Attributes$style('stroke:blue;stroke-width:1;stroke-linecap:round')
 									]),
 								_List_Nil),
 							A3($author$project$Main$draw, prog, subProc, newCursor));
@@ -6738,7 +6684,7 @@ var $author$project$Main$draw = F3(
 							$temp$cursor = _Utils_update(
 							cursor,
 							{
-								angle: $author$project$Main$correctAngle(cursor.angle - n)
+								angle: $author$project$Main$changeAngle(cursor.angle - n)
 							});
 						prog = $temp$prog;
 						proc = $temp$proc;
@@ -6751,7 +6697,7 @@ var $author$project$Main$draw = F3(
 							$temp$cursor = _Utils_update(
 							cursor,
 							{
-								angle: $author$project$Main$correctAngle(cursor.angle + n)
+								angle: $author$project$Main$changeAngle(cursor.angle + n)
 							});
 						prog = $temp$prog;
 						proc = $temp$proc;
@@ -6804,7 +6750,7 @@ var $elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
 var $elm$svg$Svg$svg = $elm$svg$Svg$trustedNode('svg');
 var $elm$svg$Svg$Attributes$viewBox = _VirtualDom_attribute('viewBox');
 var $elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
-var $author$project$Main$test = function (mprog) {
+var $author$project$Main$drawingSpace = function (maybeprog) {
 	return A2(
 		$elm$svg$Svg$svg,
 		_List_fromArray(
@@ -6814,8 +6760,8 @@ var $author$project$Main$test = function (mprog) {
 				$elm$svg$Svg$Attributes$viewBox('0 0 500 500')
 			]),
 		function () {
-			if (mprog.$ === 'Just') {
-				var prog = mprog.a;
+			if (maybeprog.$ === 'Just') {
+				var prog = maybeprog.a;
 				return A3(
 					$author$project$Main$draw,
 					prog,
@@ -6829,6 +6775,60 @@ var $author$project$Main$test = function (mprog) {
 			}
 		}());
 };
+var $elm$html$Html$input = _VirtualDom_node('input');
+var $elm$virtual_dom$VirtualDom$lazy = _VirtualDom_lazy;
+var $elm$html$Html$Lazy$lazy = $elm$virtual_dom$VirtualDom$lazy;
+var $elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
+var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var $elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var $elm$html$Html$Events$onClick = function (msg) {
+	return A2(
+		$elm$html$Html$Events$on,
+		'click',
+		$elm$json$Json$Decode$succeed(msg));
+};
+var $elm$html$Html$Events$alwaysStop = function (x) {
+	return _Utils_Tuple2(x, true);
+};
+var $elm$virtual_dom$VirtualDom$MayStopPropagation = function (a) {
+	return {$: 'MayStopPropagation', a: a};
+};
+var $elm$html$Html$Events$stopPropagationOn = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
+	});
+var $elm$json$Json$Decode$field = _Json_decodeField;
+var $elm$json$Json$Decode$at = F2(
+	function (fields, decoder) {
+		return A3($elm$core$List$foldr, $elm$json$Json$Decode$field, decoder, fields);
+	});
+var $elm$json$Json$Decode$string = _Json_decodeString;
+var $elm$html$Html$Events$targetValue = A2(
+	$elm$json$Json$Decode$at,
+	_List_fromArray(
+		['target', 'value']),
+	$elm$json$Json$Decode$string);
+var $elm$html$Html$Events$onInput = function (tagger) {
+	return A2(
+		$elm$html$Html$Events$stopPropagationOn,
+		'input',
+		A2(
+			$elm$json$Json$Decode$map,
+			$elm$html$Html$Events$alwaysStop,
+			A2($elm$json$Json$Decode$map, tagger, $elm$html$Html$Events$targetValue)));
+};
+var $elm$html$Html$Attributes$placeholder = $elm$html$Html$Attributes$stringProperty('placeholder');
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
@@ -6860,16 +6860,7 @@ var $author$project$Main$view = function (model) {
 					[
 						$elm$html$Html$text('Draw')
 					])),
-				A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('page')
-					]),
-				_List_fromArray(
-					[
-						A2($elm$html$Html$Lazy$lazy, $author$project$Main$test, model.prog)
-					]))
+				A2($elm$html$Html$Lazy$lazy, $author$project$Main$drawingSpace, model.prog)
 			])) : A2(
 		$elm$html$Html$div,
 		_List_fromArray(

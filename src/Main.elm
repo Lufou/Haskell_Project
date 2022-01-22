@@ -53,15 +53,15 @@ update msg model =
                 , errors = errors
               }
           )
-correctAngle : Float -> Float
-correctAngle angle =
-  if angle >= 360 then
-    angle - 360
-  else if angle < 0 then
-    angle + 360
-  
+
+changeAngle : Float -> Float
+changeAngle a =
+  if a < 0 then
+    a + 360.0
+  else if a >= 360 then
+    a - 360.0
   else
-    angle
+    a
 draw : Program -> Proc -> Cursor -> List (Svg msg)
 draw prog proc cursor =
   case proc of
@@ -83,17 +83,17 @@ draw prog proc cursor =
             , y1 (String.fromFloat cursor.y)
             , x2 (String.fromFloat newCursor.x)
             , y2 (String.fromFloat newCursor.y)
-            , Svg.Attributes.style "stroke:rgb(255,0,0);stroke-width:2"
+            , Svg.Attributes.style "stroke:blue;stroke-width:1;stroke-linecap:round"
             ]
             []
 
             :: draw prog subProc newCursor
 
         Left n ->
-            draw prog subProc { cursor | angle = correctAngle (cursor.angle - n) }
+            draw prog subProc { cursor | angle = changeAngle (cursor.angle - n) }
 
         Right n ->
-            draw prog subProc { cursor | angle = correctAngle (cursor.angle + n) }
+            draw prog subProc { cursor | angle = changeAngle (cursor.angle + n) }
 
         Repeat n toRepeat ->
             if n <= 1 then
@@ -114,7 +114,7 @@ view model =
     div [ Html.Attributes.class "page" ]
       [ input [ placeholder "example: [Repeat 360 [Forward 1, Left 1]]", value model.content, onInput Change ] []
       , button [ onClick Draw ] [ Html.text "Draw"]
-      , div [ Html.Attributes.class "page" ] [lazy drawingSpace model.prog]
+      , lazy drawingSpace model.prog
       ]
   else
       div [ Html.Attributes.class "page" ]
@@ -125,13 +125,13 @@ view model =
       ]
 
 drawingSpace : Maybe Program -> Html Msg
-drawingSpace mprog =
+drawingSpace maybeprog =
    svg
       [ Svg.Attributes.width "500"
       , Svg.Attributes.height "500"
       , viewBox "0 0 500 500"
       ]
-      (case mprog of
+      (case maybeprog of
           Just prog ->
               draw prog (Maybe.withDefault [] (Dict.get "main" prog)) { x = 250, y = 250, angle = 0 }
           Nothing ->
